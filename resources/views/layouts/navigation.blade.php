@@ -16,6 +16,9 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     <x-nav-link :href="route('contacts.index')" :active="request()->routeIs('contacts.*')">Adresár</x-nav-link>
+                    <x-nav-link :href="route('simple-mail.create')" :active="request()->routeIs('simple-mail.create')">
+                        Poslať mail
+                    </x-nav-link>
                 </div>
             </div>
 

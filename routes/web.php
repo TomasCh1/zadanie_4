@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\MailSimpleController;
+
 
 Route::view('/', 'auth.index')->middleware('guest');
 
@@ -18,6 +20,11 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('contacts', ContactController::class);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get ('/mail/simple', [MailSimpleController::class, 'create'])->name('simple-mail.create');
+    Route::post('/mail/simple', [MailSimpleController::class, 'store' ])->name('simple-mail.store');
 });
 
 require __DIR__.'/auth.php';
