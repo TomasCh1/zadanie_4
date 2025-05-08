@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Mail;
 
 class MailSimpleController extends Controller
 {
-    /** Zobrazí formulár */
     public function create()
     {
         $contacts  = Contact::all();
@@ -18,22 +17,26 @@ class MailSimpleController extends Controller
         return view('mail.simple_send', compact('contacts','templates'));
     }
 
-    /** Spracuje POST a odošle e-mail aj s prílohami */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'contact_id'    => 'required|exists:contacts,id',
+            'contact_ids'   => 'required|array|min:1',
+            'contact_ids.*' => 'exists:contacts,id',
             'template_id'   => 'required|exists:email_templates,id',
             'attachments.*' => 'file|max:5120|mimes:pdf,doc,docx,jpg,jpeg,png,zip',
         ]);
 
-        $contact  = Contact::findOrFail($data['contact_id']);
+        // Načítame vybrané kontakty a šablónu
+        $contacts = Contact::whereIn('id', $data['contact_ids'])->get();
         $template = EmailTemplate::findOrFail($data['template_id']);
         $files    = $request->file('attachments', []);
 
-        Mail::to($contact->email)
-            ->send(new DynamicTemplateMail($template, $contact, $files));
+        // Pre každý kontakt pošleme samostatný e-mail
+        foreach ($contacts as $contact) {
+            Mail::to($contact->email)
+                ->send(new DynamicTemplateMail($template, $contact, $files));
+        }
 
-        return back()->with('ok','E-mail úspešne odoslaný.');
+        return back()->with('ok','E-maily boli úspešne odoslané vybraným kontaktom.');
     }
 }

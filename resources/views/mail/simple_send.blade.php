@@ -8,15 +8,9 @@
     <div class="py-6">
         <div class="max-w-lg mx-auto bg-white p-6 rounded shadow">
 
-            {{-- flash správy --}}
             @if(session('ok'))
                 <div class="mb-4 px-4 py-2 bg-green-100 text-green-800 rounded">
                     {{ session('ok') }}
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="mb-4 px-4 py-2 bg-red-100 text-red-800 rounded">
-                    {{ session('error') }}
                 </div>
             @endif
 
@@ -26,24 +20,24 @@
                   class="space-y-4">
                 @csrf
 
-                {{-- Kontakt --}}
+                {{-- Výber jedného alebo viacerých kontaktov --}}
                 <div>
-                    <x-input-label for="contact_id" value="Kontakt" />
-                    <select name="contact_id" id="contact_id"
-                            class="w-full border-gray-300 rounded">
-                        <option value="">-- vyber --</option>
+                    <x-input-label for="contact_ids" value="Kontakty" />
+                    <select id="contact_ids"
+                            name="contact_ids[]"
+                            multiple
+                            class="block w-full">
                         @foreach($contacts as $c)
                             <option value="{{ $c->id }}"
-                                    {{ old('contact_id')==$c->id?'selected':'' }}>
-                                {{ $c->first_name }} {{ $c->last_name }}
-                                ({{ $c->email }})
+                                    {{ in_array($c->id, old('contact_ids', [])) ? 'selected':'' }}>
+                                {{ $c->first_name }} {{ $c->last_name }} ({{ $c->email }})
                             </option>
                         @endforeach
                     </select>
-                    <x-input-error :messages="$errors->get('contact_id')" />
+                    <x-input-error :messages="$errors->get('contact_ids.*')" />
                 </div>
 
-                {{-- Šablóna --}}
+                {{-- Výber šablóny --}}
                 <div>
                     <x-input-label for="template_id" value="Šablóna" />
                     <select name="template_id" id="template_id"
@@ -72,11 +66,20 @@
                     <x-input-error :messages="$errors->get('attachments.*')" />
                 </div>
 
-                {{-- Odošli --}}
                 <div>
                     <x-primary-button>Odoslať e-mail</x-primary-button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            new TomSelect('#contact_ids', {
+                placeholder: 'Vyberte jedného alebo viac príjemcov',
+                plugins: ['remove_button'],
+                maxItems: null,
+            });
+        });
+    </script>
 </x-app-layout>
