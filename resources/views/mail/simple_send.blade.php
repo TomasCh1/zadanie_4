@@ -1,4 +1,3 @@
-{{-- resources/views/mail/simple_send.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -8,6 +7,7 @@
 
     <div class="py-6">
         <div class="max-w-lg mx-auto bg-white p-6 rounded shadow">
+
             {{-- flash správy --}}
             @if(session('ok'))
                 <div class="mb-4 px-4 py-2 bg-green-100 text-green-800 rounded">
@@ -26,7 +26,7 @@
                   class="space-y-4">
                 @csrf
 
-                {{-- výber kontaktu --}}
+                {{-- Kontakt --}}
                 <div>
                     <x-input-label for="contact_id" value="Kontakt" />
                     <select name="contact_id" id="contact_id"
@@ -34,7 +34,7 @@
                         <option value="">-- vyber --</option>
                         @foreach($contacts as $c)
                             <option value="{{ $c->id }}"
-                                    {{ old('contact_id') == $c->id ? 'selected':'' }}>
+                                    {{ old('contact_id')==$c->id?'selected':'' }}>
                                 {{ $c->first_name }} {{ $c->last_name }}
                                 ({{ $c->email }})
                             </option>
@@ -43,38 +43,36 @@
                     <x-input-error :messages="$errors->get('contact_id')" />
                 </div>
 
-                {{-- výber šablóny --}}
+                {{-- Šablóna --}}
                 <div>
-                    <x-input-label for="template" value="Šablóna" />
-                    <select name="template" id="template" class="w-full border-gray-300 rounded">
-                        <option value="">-- vyber --</option>
-                        @foreach($templates as $key => $label)
-                            <option value="{{ $key }}"
-                                    {{ old('template') === $key ? 'selected':'' }}>
-                                {{ $label }}
+                    <x-input-label for="template_id" value="Šablóna" />
+                    <select name="template_id" id="template_id"
+                            class="w-full border-gray-300 rounded">
+                        <option value="">-- vyber šablónu --</option>
+                        @foreach($templates as $tpl)
+                            <option value="{{ $tpl->id }}"
+                                    {{ old('template_id')==$tpl->id?'selected':'' }}>
+                                {{ $tpl->name }}
                             </option>
                         @endforeach
                     </select>
-
-                    <x-input-error :messages="$errors->get('template')" />
+                    <x-input-error :messages="$errors->get('template_id')" />
                 </div>
 
-                {{-- prílohy --}}
+                {{-- Prílohy --}}
                 <div>
                     <x-input-label for="attachments" value="Prílohy (voliteľné)" />
-                    <input
-                            id="attachments"
-                            type="file"
-                            name="attachments[]"
-                            multiple
-                            accept=".pdf,.jpg,.jpeg,.png,.zip"
-                            class="block w-full text-sm text-gray-900 bg-gray-50 rounded border border-gray-300 cursor-pointer"
+                    <input id="attachments"
+                           type="file"
+                           name="attachments[]"
+                           multiple
+                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
+                           class="block w-full text-sm text-gray-900 bg-gray-50 rounded border border-gray-300 cursor-pointer"
                     >
-                    <x-input-error :messages="$errors->get('attachments')" />
                     <x-input-error :messages="$errors->get('attachments.*')" />
                 </div>
 
-                {{-- tlačidlo --}}
+                {{-- Odošli --}}
                 <div>
                     <x-primary-button>Odoslať e-mail</x-primary-button>
                 </div>

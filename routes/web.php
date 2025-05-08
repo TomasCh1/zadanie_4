@@ -24,8 +24,11 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get ('/mail/simple', [MailSimpleController::class, 'create'])->name('simple-mail.create');
-    Route::post('/mail/simple', [MailSimpleController::class, 'store' ])->name('simple-mail.store');
+    Route::get('/mail/simple', [MailSimpleController::class,'create'])
+        ->name('simple-mail.create');
+
+    Route::post('/mail/simple', [MailSimpleController::class,'store'])
+        ->name('simple-mail.store');
 });
 
 Route::resource('templates', EmailTemplateController::class);

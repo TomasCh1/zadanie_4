@@ -10,75 +10,56 @@ class EmailTemplateController extends Controller
 {
     public function index(Request $request)
     {
-        $q = $request->get('q');
-        $templates = EmailTemplate::when($q, fn($qb) => $qb->where('name','like',"%{$q}%"))
-            ->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
+        $templates = EmailTemplate::when($request->q, fn($q) =>
+        $q->where('name', 'like', '%'.$request->q.'%')
+            ->orWhere('subject', 'like', '%'.$request->q.'%')
+        )->paginate(10);
 
-        return view('templates.index', compact('templates','q'));
+        return view('templates.index', compact('templates'));
     }
 
     public function create()
     {
-        return view('templates.form', [
-            'template' => new EmailTemplate(),
-            'action'   => route('templates.store'),
-            'method'   => 'POST',
-        ]);
+        return view('templates.form');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $r)
     {
-        $data = $request->validate([
-            'name'      => 'required|unique:email_templates,name',
-            'subject'   => 'required|string',
-            'body_html' => 'nullable|string',
-            'body_text' => 'nullable|string',
+        $data = $r->validate([
+            'name'    => 'required|unique:email_templates,name',
+            'subject' => 'required|string',
+            'body'    => 'required|string',
+            'is_html' => 'sometimes|boolean',
         ]);
 
         EmailTemplate::create($data);
 
         return redirect()->route('templates.index')
-            ->with('ok','Šablóna vytvorená');
+            ->with('success','Šablóna uložená.');
     }
 
     public function edit(EmailTemplate $template)
     {
-        return view('templates.form', [
-            'template' => $template,
-            'action'   => route('templates.update',$template),
-            'method'   => 'PUT',
-        ]);
+        return view('templates.form', compact('template'));
     }
 
-    public function update(Request $request, EmailTemplate $template): RedirectResponse
+    public function update(Request $r, EmailTemplate $template)
     {
-        $data = $request->validate([
-            'name'      => "required|unique:email_templates,name,{$template->id}",
-            'subject'   => 'required|string',
-            'body_html' => 'nullable|string',
-            'body_text' => 'nullable|string',
+        $data = $r->validate([
+            'name'    => 'required|unique:email_templates,name,'.$template->id,
+            'subject' => 'required|string',
+            'body'    => 'required|string',
+            'is_html' => 'sometimes|boolean',
         ]);
 
         $template->update($data);
 
-        return back()->with('ok','Šablóna uložená');
+        return back()->with('success','Šablóna upravená.');
     }
 
-    public function destroy(EmailTemplate $template): RedirectResponse
+    public function destroy(EmailTemplate $template)
     {
         $template->delete();
-        return back()->with('ok','Šablóna odstránená');
-    }
-
-    public function copy(EmailTemplate $template): RedirectResponse
-    {
-        $copy = $template->replicate();
-        $copy->name = $template->name . ' (kopie)';
-        $copy->push();
-
-        return redirect()->route('templates.edit', $copy)
-            ->with('ok','Šablóna skopírovaná, uprav názov a ulož');
+        return back()->with('success','Šablóna zmazaná.');
     }
 }

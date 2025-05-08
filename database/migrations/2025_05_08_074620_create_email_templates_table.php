@@ -9,14 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::create('email_templates', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();                // ľudský názov
-            $table->string('subject');                       // subject s {{placeholders}}
-            $table->longText('body_html')->nullable();       // HTML verzia
-            $table->longText('body_text')->nullable();       // Plain-text verzia
+            $table->string('name')->unique();
+            $table->string('subject');
+            $table->text('body');
+            $table->boolean('is_html')->default(true);
             $table->timestamps();
         });
     }
