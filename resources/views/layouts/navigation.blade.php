@@ -22,6 +22,9 @@
                     <x-nav-link :href="route('templates.index')" :active="request()->routeIs('templates.index')">
                         Pozrieť  šablónu
                     </x-nav-link>
+                        <x-nav-link :href="route('sent_emails.index')" :active="request()->routeIs('sent_emails.*')">
+                            História mailov
+                        </x-nav-link>
                 </div>
             </div>
 

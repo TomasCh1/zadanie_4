@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MailSimpleController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\SentEmailController;
 
 
 
@@ -42,5 +43,9 @@ Route::put(   '/templates/{template}',   [EmailTemplateController::class, 'updat
 Route::delete('/templates/{template}',   [EmailTemplateController::class, 'destroy'])->name('templates.destroy');
 Route::post('/templates/{template}/duplicate', [EmailTemplateController::class,'duplicate'])
     ->name('templates.duplicate');
+
+
+Route::get('/sent-emails', [SentEmailController::class, 'index'])
+    ->name('sent_emails.index');
 
 require __DIR__.'/auth.php';
