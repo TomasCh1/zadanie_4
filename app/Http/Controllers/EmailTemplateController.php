@@ -4,62 +4,116 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Blade;
 
 class EmailTemplateController extends Controller
 {
     public function index(Request $request)
     {
-        $templates = EmailTemplate::when($request->q, fn($q) =>
-        $q->where('name', 'like', '%'.$request->q.'%')
-            ->orWhere('subject', 'like', '%'.$request->q.'%')
-        )->paginate(10);
+        $q = $request->input('q');
+        $templates = EmailTemplate::when($q, fn($qb) =>
+        $qb->where('name','like',"%{$q}%")
+            ->orWhere('subject','like',"%{$q}%")
+        )
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('templates.index', compact('templates'));
+        return view('templates.index', compact('templates','q'));
     }
 
     public function create()
     {
-        return view('templates.form');
+        return view('templates.create');
     }
 
-    public function store(Request $r)
+    public function store(Request $request)
     {
-        $data = $r->validate([
-            'name'    => 'required|unique:email_templates,name',
-            'subject' => 'required|string',
-            'body'    => 'required|string',
-            'is_html' => 'sometimes|boolean',
+        $data = $request->validate([
+            'name'     => 'required|string|unique:email_templates,name',
+            'subject'  => 'required|string',
+            'body'     => 'required|string',
+            'is_html'  => 'sometimes|boolean',
         ]);
 
-        EmailTemplate::create($data);
+        EmailTemplate::create($data + ['is_html' => $request->has('is_html')]);
 
-        return redirect()->route('templates.index')
-            ->with('success','Šablóna uložená.');
+        return redirect()
+            ->route('templates.index')
+            ->with('ok','Šablóna úspešne vytvorená.');
     }
 
+    public function show(Request $request, EmailTemplate $template)
+    {
+        $mode = $request->input('mode','raw');
+        $type = $request->input('type','tykanie');
+        $renderedBody = null;
+
+        if ($mode==='preview') {
+            $demo = (object)[
+                'first_name'=>'Jana',
+                'last_name'=>'Nováková',
+                'formality'=>$type,
+                'salutation'=> $type==='vykani'
+                    ? 'Vážená pani Nováková'
+                    : 'Ahoj Jana',
+            ];
+            $renderedBody = Blade::render(
+                $template->body,
+                ['contact'=>$demo]
+            );
+        }
+
+        return view('templates.show', compact(
+            'template','mode','type','renderedBody'
+        ));
+    }
     public function edit(EmailTemplate $template)
     {
-        return view('templates.form', compact('template'));
+        return view('templates.edit', compact('template'));
     }
 
-    public function update(Request $r, EmailTemplate $template)
+    /**
+     * PUT  /templates/{template}
+     * Spracuje úpravu a uloží zmeny.
+     */
+    public function update(Request $request, EmailTemplate $template)
     {
-        $data = $r->validate([
-            'name'    => 'required|unique:email_templates,name,'.$template->id,
-            'subject' => 'required|string',
-            'body'    => 'required|string',
-            'is_html' => 'sometimes|boolean',
+        $data = $request->validate([
+            'name'     => 'required|string|unique:email_templates,name,'.$template->id,
+            'subject'  => 'required|string',
+            'body'     => 'required|string',
+            'is_html'  => 'sometimes|boolean',
         ]);
 
-        $template->update($data);
+        // Upravíme model
+        $template->update($data + ['is_html' => $request->has('is_html')]);
 
-        return back()->with('success','Šablóna upravená.');
+        return redirect()
+            ->route('templates.index')
+            ->with('ok','Šablóna “'.$template->name.'” bola upravená.');
     }
 
     public function destroy(EmailTemplate $template)
     {
+        $name = $template->name;
         $template->delete();
-        return back()->with('success','Šablóna zmazaná.');
+
+        return redirect()
+            ->route('templates.index')
+            ->with('ok', "Šablóna „{$name}“ bola zmazaná.");
+    }
+    public function duplicate(EmailTemplate $template)
+    {
+        // Vytvoríme kópiu
+        $new = $template->replicate();
+        // Pridáme suffix do názvu
+        $new->name = $template->name . ' (copy)';
+        $new->save();
+
+        // Presmerujeme na edit, aby sa mohol užívateľ upraviť
+        return redirect()
+            ->route('templates.edit', $new)
+            ->with('ok', 'Šablóna bola skopírovaná, môžete ju upraviť.');
     }
 }

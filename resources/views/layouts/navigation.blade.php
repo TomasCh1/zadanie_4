@@ -19,6 +19,9 @@
                     <x-nav-link :href="route('simple-mail.create')" :active="request()->routeIs('simple-mail.create')">
                         Poslať mail
                     </x-nav-link>
+                    <x-nav-link :href="route('templates.index')" :active="request()->routeIs('templates.index')">
+                        Pozrieť  šablónu
+                    </x-nav-link>
                 </div>
             </div>
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\MailSimpleController;
 use App\Http\Controllers\EmailTemplateController;
 
 
+
 Route::view('/', 'auth.index')->middleware('guest');
 
 Route::get('/dashboard', function () {
@@ -32,7 +33,14 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('templates', EmailTemplateController::class);
-Route::post('templates/{template}/copy', [EmailTemplateController::class,'copy'])
-    ->name('templates.copy');
+Route::get(   '/templates',              [EmailTemplateController::class, 'index'] )->name('templates.index');
+Route::get(   '/templates/create',       [EmailTemplateController::class, 'create'])->name('templates.create');
+Route::post(  '/templates',              [EmailTemplateController::class, 'store'] )->name('templates.store');
+Route::get(   '/templates/{template}',   [EmailTemplateController::class, 'show']  )->name('templates.show');
+Route::get(   '/templates/{template}/edit',[EmailTemplateController::class,'edit'])->name('templates.edit');
+Route::put(   '/templates/{template}',   [EmailTemplateController::class, 'update'])->name('templates.update');
+Route::delete('/templates/{template}',   [EmailTemplateController::class, 'destroy'])->name('templates.destroy');
+Route::post('/templates/{template}/duplicate', [EmailTemplateController::class,'duplicate'])
+    ->name('templates.duplicate');
 
 require __DIR__.'/auth.php';
