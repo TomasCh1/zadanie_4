@@ -1,27 +1,28 @@
 @php
-    // pomocné premenné
     $isTykanie = $contact->formality === 'tykanie';
 
-    // oslovenie – ak je uložené v DB použij ho, inak zostroj
+    // oslovenie
     $hello = $contact->salutation
-             ?: ($isTykanie
-                    ? "Ahoj {$contact->first_name}"
-                    : "Vážený/á {$contact->last_name}");
+        ?: ($isTykanie
+            ? "Ahoj {$contact->first_name}"
+            : "Vážený/á {$contact->last_name}");
 @endphp
-        <!DOCTYPE html>
-<html><head><meta charset="utf-8"></head>
-<body>
-<p>{{ $hello }},</p>
 
-<p>
-    Toto je automaticky vygenerovaný e‑mail s našimi základnými informáciami.
-</p>
+        <!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<p>{{ $hello . ", " . $contact->first_name . " " . $contact->last_name}},</p>
 
 @if($isTykanie)
-    <p>Ak by si mal(a) otázky, pokojne sa ozvi.</p>
+    <p>Len sme ti chceli popriať krásny deň a pripomenúť, že si váženou súčasťou našej komunity.</p>
+    <p>Uži si ho naplno!</p>
 @else
-    <p>Ak by ste mali otázky, prosím, neváhajte ma kontaktovať.</p>
+    <p>Len sme vám chceli popriať krásny deň a pripomenúť, že ste váženou súčasťou našej komunity.</p>
+    <p>Užite si ho naplno!</p>
 @endif
 
-<p>S pozdravom,<br> Tím Laravel App</p>
-</body></html>
+
+<p>S pozdravom,<br>Tím Laravel App</p>
+</body>
+</html>

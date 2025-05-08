@@ -2,53 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\MailHelper;
+use App\Mail\SimplePredefinedMail;
 use App\Models\Contact;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class MailSimpleController extends Controller
 {
-    /**
-     * Formulár: vyber kontakt + súbory.
-     */
     public function create()
     {
+        // 1) všetky kontakty
         $contacts = Contact::all();
-        return view('mail.simple_send', compact('contacts'));
+
+        // 2) dostupné šablóny (zatiaľ file-based; neskôr môžeš čítať z DB)
+        $templates = [
+            'db_template'          => 'Pozdrav',
+            'funny_template'       => 'Vtip',
+            'motivation_template'  => 'Motivácia',
+        ];
+
+        return view('mail.simple_send', compact('contacts', 'templates'));
     }
 
-    /**
-     * Odoslanie mailu.
-     */
-    public function store(Request $r): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $validated = $r->validate([
-            'contact_id'   => 'required|exists:contacts,id',
-            'attachments.*'=> 'file|max:10240', // max 10 MB/ks
+        // definuj si kľúče, na ktorých ťa záleží
+        $fileKeys = ['db_template','funny_template','motivation_template'];
+
+        $data = $request->validate([
+            'contact_id'    => 'required|exists:contacts,id',
+            // validuj len tie z fileKeys
+            'template'      => ['required','string', \Illuminate\Validation\Rule::in($fileKeys)],
+            'attachments'   => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,zip|max:10240',
         ]);
 
-        $contact = Contact::findOrFail($validated['contact_id']);
+        // zvyšok store() nech ostane rovnaký
+        $contact = Contact::findOrFail($data['contact_id']);
 
-        // vykresli HTML šablónu s dátami z DB
-        $html = View::make('emails.db_template', ['contact' => $contact])->render();
+        $paths = collect($request->file('attachments', []))
+            ->map(fn($file) => $file->storeAs(
+                'attachments',
+                now()->format('Ymd_His_').'_'.
+                Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME))
+                .'.'.$file->getClientOriginalExtension()
+            ))->all();
 
-        // ulož nahraté prílohy do tmp a priprav cesty
-        $paths = [];
-        if ($r->hasFile('attachments')) {
-            foreach ($r->file('attachments') as $uploaded) {
-                $paths[] = $uploaded->getPathname(); // dočasná cesta
-            }
-        }
+        Mail::to($contact->email)
+            ->send(new SimplePredefinedMail(
+                $contact,
+                $paths,
+                $data['template']
+            ));
 
-        $ok = MailHelper::send(
-            $contact->email,
-            'Preddefinovaná správa',
-            $html,
-            $paths,
-        );
-
-        return back()->with($ok ? 'ok' : 'error', $ok ? 'E‑mail odoslaný' : 'Chyba pri odosielaní');
+        return back()->with('ok','E-mail bol úspešne odoslaný.');
     }
+
 }
