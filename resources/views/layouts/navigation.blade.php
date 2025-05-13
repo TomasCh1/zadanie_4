@@ -25,6 +25,13 @@
                         <x-nav-link :href="route('sent_emails.index')" :active="request()->routeIs('sent_emails.*')">
                             História mailov
                         </x-nav-link>
+
+                    <x-nav-link
+                            :href="route('predefined-mails.index')"
+                            :active="request()->routeIs('predefined-mails.*')"
+                    >
+                        {{ __('Preddefinované maily') }}
+                    </x-nav-link>
                 </div>
             </div>
 

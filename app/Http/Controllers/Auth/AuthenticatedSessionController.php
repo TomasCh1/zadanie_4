@@ -8,6 +8,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
+
 
 class AuthenticatedSessionController extends Controller
 {
@@ -16,7 +19,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        return view('auth.index');
     }
 
     /**
@@ -34,14 +37,16 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    public function destroy(Request $request): RedirectResponse
+
+    public function destroy(Request $request)
     {
-        Auth::guard('web')->logout();
+        Auth::guard('web')->logout();           // odhlási guard
 
-        $request->session()->invalidate();
+        $request->session()->invalidate();      // vymaže dáta zo storage
+        $request->session()->regenerateToken(); // nový CSRF
 
-        $request->session()->regenerateToken();
+        // istota ‑ vyprázdni session cookie v prehliadači
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

@@ -1,3 +1,4 @@
+{{-- resources/views/mail/simple_send.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -29,8 +30,12 @@
                             class="block w-full">
                         @foreach($contacts as $c)
                             <option value="{{ $c->id }}"
-                                    {{ in_array($c->id, old('contact_ids', [])) ? 'selected':'' }}>
-                                {{ $c->first_name }} {{ $c->last_name }} ({{ $c->email }})
+                                    {{ in_array(
+                                        $c->id,
+                                        old('contact_ids', $contact_ids ?? [])
+                                     ) ? 'selected' : '' }}>
+                                {{ $c->first_name }} {{ $c->last_name }}
+                                ({{ $c->email }})
                             </option>
                         @endforeach
                     </select>
@@ -40,12 +45,18 @@
                 {{-- Výber šablóny --}}
                 <div>
                     <x-input-label for="template_id" value="Šablóna" />
-                    <select name="template_id" id="template_id"
+                    <select name="template_id"
+                            id="template_id"
                             class="w-full border-gray-300 rounded">
                         <option value="">-- vyber šablónu --</option>
                         @foreach($templates as $tpl)
                             <option value="{{ $tpl->id }}"
-                                    {{ old('template_id')==$tpl->id?'selected':'' }}>
+                                    {{ old(
+                                          'template_id',
+                                          $selected_template_id ?? null
+                                       ) == $tpl->id
+                                       ? 'selected'
+                                       : '' }}>
                                 {{ $tpl->name }}
                             </option>
                         @endforeach

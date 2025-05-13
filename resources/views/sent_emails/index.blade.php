@@ -7,14 +7,30 @@
 
     <div class="py-6">
         <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
+
+            <!-- Vyhľadávací formulár -->
+            <form method="GET"
+                  action="{{ route('sent_emails.index') }}"
+                  class="mb-4 flex gap-2">
+                <input type="text"
+                       name="q"
+                       value="{{ old('q', $q) }}"
+                       placeholder="Hľadať v príjemcoch, šablóne alebo predmete..."
+                       class="flex-1 border-gray-300 rounded px-3 py-2" />
+                <button type="submit"
+                        class="btn-primary">
+                    Hľadať
+                </button>
+            </form>
+
             <table class="w-full table-auto border-collapse">
                 <thead>
                 <tr class="bg-gray-100">
                     <th class="border px-4 py-2">Dátum</th>
-                    <th class="border px-4 py-2">Kontakt</th>
+                    <th class="border px-4 py-2">Príjemcovia</th>
                     <th class="border px-4 py-2">Šablóna</th>
                     <th class="border px-4 py-2">Predmet</th>
-                    <th class="border px-4 py-2">Telo e-mailu</th>
+                        <th class="border px-4 py-2">Akcie</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -23,9 +39,8 @@
                         <td class="border px-4 py-2 text-sm text-gray-600">
                             {{ $sent->created_at->format('Y-m-d H:i') }}
                         </td>
-                        <td class="border px-4 py-2 text-sm">
-                            {{ $sent->contact->first_name }} {{ $sent->contact->last_name }}
-                            ({{ $sent->contact->email }})
+                        <td class="border px-4 py-2 text-sm whitespace-pre-wrap">
+                            {!! nl2br(e($sent->recipients)) !!}
                         </td>
                         <td class="border px-4 py-2 text-sm">
                             {{ $sent->template->name }}
@@ -34,13 +49,17 @@
                             {{ $sent->subject }}
                         </td>
                         <td class="border px-4 py-2 text-sm">
-                            <button @click="show = (show==={{ $sent->id }}? null : {{ $sent->id }})"
-                                    class="text-indigo-600 hover:underline">
-                                Zobraziť
-                            </button>
-                            <div x-data="{ show: null }">
-                                <div x-show="show==={{ $sent->id }}"
-                                     class="mt-2 p-2 bg-gray-50 rounded text-xs whitespace-pre-wrap">
+                            <div x-data="{ open: false }">
+                                <a href="{{ route('simple-mail.replicate', $sent) }}"
+                                   class="btn-primary">
+                                    Replikovať / Znovu odoslať
+                                </a>
+                                <a href="{{ route('sent_emails.show', $sent) }}"
+                                   class="btn-primary">
+                                    Detail
+                                </a>
+
+                                <div x-show="open" class="mt-2 bg-gray-50 p-2 rounded text-xs whitespace-pre-wrap">
                                     {!! nl2br(e($sent->body)) !!}
                                 </div>
                             </div>

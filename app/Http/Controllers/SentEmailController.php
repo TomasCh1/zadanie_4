@@ -10,14 +10,24 @@ class SentEmailController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // 20 záznamov na stránku, najnovšie prvé
-        $history = SentEmail::with(['contact','template'])
+        $q = $request->input('q');
+
+        $history = SentEmail::with('template')
+            ->when($q, function($query) use ($q) {
+                $query->where('recipients', 'like', "%{$q}%")
+                    ->orWhere('subject', 'like', "%{$q}%")
+                    ->orWhereHas('template', function($q2) use ($q) {
+                        $q2->where('name', 'like', "%{$q}%");
+                    });
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('sent_emails.index', compact('history'));
+        $history->appends(['q' => $q]);
+
+        return view('sent_emails.index', compact('history', 'q'));
     }
 
     /**
@@ -39,9 +49,9 @@ class SentEmailController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(SentEmail $sentEmail)
     {
-        //
+        return view('sent_emails.show', compact('sentEmail'));
     }
 
     /**

@@ -3,7 +3,7 @@
 @csrf
 @if($contact->exists) @method('put') @endif
 
-<div class="space-y-4">
+<div>
     {{-- meno --}}
     <div>
         <x-input-label for="first_name" value="Meno" />

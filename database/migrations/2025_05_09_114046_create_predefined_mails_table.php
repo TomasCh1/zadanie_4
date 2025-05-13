@@ -7,20 +7,21 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
-        Schema::create('sent_emails', function (Blueprint $table) {
+        Schema::create('predefined_mails', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->json('contact_ids');          // uložené kontakty
             $table->foreignId('template_id')
                 ->constrained('email_templates')
                 ->cascadeOnDelete();
-            $table->text('recipients');
-            $table->string('subject');
-            $table->text('body');
+            $table->json('attachments')->nullable(); // paths alebo data
+            $table->timestamp('scheduled_at')->nullable();
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('sent_emails');
+        Schema::dropIfExists('predefined_mails');
     }
 };
